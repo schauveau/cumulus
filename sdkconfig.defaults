@@ -1,0 +1,17 @@
+#
+# See also main/Kconfig.projbuild for the application defaults.
+#
+
+CONFIG_PARTITION_TABLE_CUSTOM=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"
+CONFIG_PARTITION_TABLE_FILENAME="partitions.csv"
+CONFIG_PARTITION_TABLE_OFFSET=0x8000
+CONFIG_PARTITION_TABLE_MD5=y
+
+# Try to reduce code size by removing a few features from
+# system libraries (the linker already does a good job
+# by ignoring object files that are not referenced so
+# removing support here is only useful for libraries that
+# we are partially using. 
+CONFIG_ESP_WIFI_SOFTAP_SUPPORT=n
+

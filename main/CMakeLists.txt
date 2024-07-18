@@ -1,0 +1,21 @@
+idf_component_register(
+ SRCS
+  "acr.c"
+  "app.c"
+  "app_support.c"
+  "button_driver.c"
+  "http_ui.c"
+  "main.c"
+  "resource.c"
+  "rgb_led.c"
+  "telnet.c"
+  "wifi_manager.c"
+ INCLUDE_DIRS
+   "."
+ EMBED_TXTFILES
+   "data/global.css"
+   "data/index.html"
+   "data/test.html"
+ EMBED_FILES
+   "data/test.png"
+ )

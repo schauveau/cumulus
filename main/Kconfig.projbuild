@@ -1,0 +1,124 @@
+menu "*** Project Configuration ***"
+
+    config ESP_WIFI_SSID
+        string "WiFi SSID"
+        default "myssid"
+        help
+            SSID (network name) for the example to connect to.
+
+    config ESP_WIFI_PASSWORD
+        string "WiFi Password"
+        default "mypassword"
+        help
+            WiFi password (WPA or WPA2) for the example to use.
+
+    choice ESP_WIFI_SAE_MODE
+        prompt "WPA3 SAE mode selection"
+        default ESP_WPA3_SAE_PWE_BOTH
+        help
+            Select mode for SAE as Hunt and Peck, H2E or both.
+        config ESP_WPA3_SAE_PWE_HUNT_AND_PECK
+            bool "HUNT AND PECK"
+        config ESP_WPA3_SAE_PWE_HASH_TO_ELEMENT
+            bool "H2E"
+        config ESP_WPA3_SAE_PWE_BOTH
+            bool "BOTH"
+    endchoice
+
+    config ESP_WIFI_PW_ID
+        string "PASSWORD IDENTIFIER"
+        depends on  ESP_WPA3_SAE_PWE_HASH_TO_ELEMENT|| ESP_WPA3_SAE_PWE_BOTH
+        default ""
+        help
+            password identifier for SAE H2E
+
+    config ESP_MAXIMUM_RETRY
+        int "Maximum retry"
+        default 5
+        help
+            Set the Maximum retry to avoid station reconnecting to the AP unlimited when the AP is really inexistent.
+
+    choice ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD
+        prompt "WiFi Scan auth mode threshold"
+        default ESP_WIFI_AUTH_WPA2_PSK
+        help
+            The weakest authmode to accept in the scan mode.
+            This value defaults to ESP_WIFI_AUTH_WPA2_PSK incase password is present and ESP_WIFI_AUTH_OPEN is used.
+            Please select ESP_WIFI_AUTH_WEP/ESP_WIFI_AUTH_WPA_PSK incase AP is operating in WEP/WPA mode.
+
+        config ESP_WIFI_AUTH_OPEN
+            bool "OPEN"
+        config ESP_WIFI_AUTH_WEP
+            bool "WEP"
+        config ESP_WIFI_AUTH_WPA_PSK
+            bool "WPA PSK"
+        config ESP_WIFI_AUTH_WPA2_PSK
+            bool "WPA2 PSK"
+        config ESP_WIFI_AUTH_WPA_WPA2_PSK
+            bool "WPA/WPA2 PSK"
+        config ESP_WIFI_AUTH_WPA3_PSK
+            bool "WPA3 PSK"
+        config ESP_WIFI_AUTH_WPA2_WPA3_PSK
+            bool "WPA2/WPA3 PSK"
+        config ESP_WIFI_AUTH_WAPI_PSK
+            bool "WAPI PSK"
+    endchoice
+
+    config TELNET_PORT
+        int "Telnet port"
+        range 0 65535
+        default 22
+        help
+           The port used by the telnet server.          
+
+    config ACR_FRAME_SIZE
+        int "AC relay frame size"
+        range 10 200
+        default 25
+        help
+          This is the number of half-periods over which the power should be adjusted.
+          For example, a frame of 100 has a duration of 1 second with 50hz AC. 
+
+    config FULL_POWER
+        int "Full power of the relay"
+        range 1 3000
+        default 650
+        help
+          The power (in W) when the AC relay is running at 100%. 
+
+    config RELAY_GPIO
+        int "AC Relay GPIO number"
+        range 0 100
+        default 5
+        help
+          GPIO number (IOxx) to control the AC Relay.
+
+    config RGB_GPIO
+        int "RGB Led GPIO number"
+        range -1 100
+        default 8 if IDF_TARGET_ESP32C6
+        default 8 if IDF_TARGET_ESP32H2
+        default 21
+        help
+          GPIO number (IOxx) to control the RGB led.
+
+    config BUTTON_A_GPIO
+        int "Button A GPIO number"
+        range 0 100
+        default 3
+        help
+          GPIO number (IOxx) for the primary button.
+          Activate by connecting to GND. 
+
+    config BUTTON_B_GPIO
+        int "Button B GPIO number"
+        range 0 100
+        default 9 if IDF_TARGET_ESP32C6
+        default 9 if IDF_TARGET_ESP32H2
+        default 20
+        help
+          GPIO number (IOxx) for the secondary button.
+          Activate by connecting to GND.
+          For ESP32H2 and ESP32C6, the default is 9 which should be the BOOT button on most development boards.
+
+endmenu
