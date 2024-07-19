@@ -21,13 +21,15 @@ void led_init(void)
   /* LED strip initialization with the GPIO and pixels number*/
   led_strip_config_t strip_config = {
     .strip_gpio_num   = CONFIG_RGB_GPIO,
-    .led_model        = LED_MODEL_WS2812,
-    .led_pixel_format = LED_PIXEL_FORMAT_GRB, // should be LED_PIXEL_FORMAT_RGB    
     .max_leds         = 1, 
+    .led_pixel_format = LED_PIXEL_FORMAT_GRB, // should be LED_PIXEL_FORMAT_RGB    
+    .led_model        = LED_MODEL_WS2812,
   };
   led_strip_rmt_config_t rmt_config = {
     .resolution_hz = 10 * 1000 * 1000, // 10MHz is the default
-    .flags.with_dma = false,
+    .flags = {
+      .with_dma = false,
+    }
   };
   ESP_ERROR_CHECK(led_strip_new_rmt_device(&strip_config, &rmt_config, &led_strip));
   led_strip_clear(led_strip);

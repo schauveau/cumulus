@@ -56,7 +56,7 @@ static char *http_auth_basic(const char *username, const char *password)
      * n: Number of bytes for a base64 encode format
      * 1: Number of bytes for a reserved which be used to fill zero
     */
-    digest = calloc(1, 6 + n + 1);
+    digest = (char*)calloc(1, 6 + n + 1);
     if (digest) {
         strcpy(digest, "Basic ");
         esp_crypto_base64_encode((unsigned char *)digest + 6, n, &out, (const unsigned char *)user_info, strlen(user_info));
@@ -70,11 +70,11 @@ static esp_err_t uri_basic_auth_get_handler(httpd_req_t *req)
 {
     char *buf = NULL;
     size_t buf_len = 0;
-    basic_auth_info_t *basic_auth_info = req->user_ctx;
+    basic_auth_info_t *basic_auth_info = (basic_auth_info_t *)req->user_ctx;
 
     buf_len = httpd_req_get_hdr_value_len(req, "Authorization") + 1;
     if (buf_len > 1) {
-        buf = calloc(1, buf_len);
+        buf = (char*)calloc(1, buf_len);
         if (!buf) {
             ESP_LOGE(TAG, "No enough memory for basic authorization");
             return ESP_ERR_NO_MEM;
@@ -143,7 +143,7 @@ static httpd_uri_t uri_basic_auth = {
 
 static void httpd_register_basic_auth(httpd_handle_t server)
 {
-  basic_auth_info_t *basic_auth_info = calloc(1, sizeof(basic_auth_info_t));
+  basic_auth_info_t *basic_auth_info = (basic_auth_info_t*) calloc(1, sizeof(basic_auth_info_t));
   if (basic_auth_info) {
     basic_auth_info->username = "admin";
     basic_auth_info->password = "foobar";
@@ -160,7 +160,7 @@ static char *find_header(httpd_req_t *req, const char *header)
 {
   size_t len = httpd_req_get_hdr_value_len(req, header) + 1;
   if (len > 1) {
-    char * buf = malloc(len);
+    char * buf = (char*) malloc(len);
     if (buf) {
       if (httpd_req_get_hdr_value_str(req, header, buf, len) == ESP_OK) {
         return buf;
@@ -342,7 +342,7 @@ static esp_err_t uri_page_handler(httpd_req_t *req)
 
 static const httpd_uri_t uri_page = {
     .uri       = URI_PAGE_PREFIX "*",
-    .method    = HTTP_ANY,  // GET or POST
+    .method    = (httpd_method_t)HTTP_ANY,  // GET or POST
     .handler   = uri_page_handler,
     .user_ctx  = NULL
 };
@@ -379,7 +379,7 @@ static esp_err_t uri_dump_post_handler(httpd_req_t *req)
 
 static const httpd_uri_t uri_dump = {
     .uri       = "/dump/?*",
-    .method    = HTTP_ANY,
+    .method    = (httpd_method_t) HTTP_ANY,
     .handler   = uri_dump_post_handler,
     .user_ctx  = NULL
 };
@@ -394,7 +394,7 @@ static esp_err_t uri_hello_get_handler(httpd_req_t *req)
      * extra byte for null termination */
     buf_len = httpd_req_get_hdr_value_len(req, "Host") + 1;
     if (buf_len > 1) {
-        buf = malloc(buf_len);
+      buf = (char*)malloc(buf_len);
         ESP_RETURN_ON_FALSE(buf, ESP_ERR_NO_MEM, TAG, "buffer alloc failed");
         /* Copy null terminated value string into buffer */
         if (httpd_req_get_hdr_value_str(req, "Host", buf, buf_len) == ESP_OK) {
@@ -405,7 +405,7 @@ static esp_err_t uri_hello_get_handler(httpd_req_t *req)
 
     buf_len = httpd_req_get_hdr_value_len(req, "Test-Header-2") + 1;
     if (buf_len > 1) {
-        buf = malloc(buf_len);
+        buf = (char*)malloc(buf_len);
         ESP_RETURN_ON_FALSE(buf, ESP_ERR_NO_MEM, TAG, "buffer alloc failed");
         if (httpd_req_get_hdr_value_str(req, "Test-Header-2", buf, buf_len) == ESP_OK) {
             ESP_LOGI(TAG, "Found header => Test-Header-2: %s", buf);
@@ -415,7 +415,7 @@ static esp_err_t uri_hello_get_handler(httpd_req_t *req)
 
     buf_len = httpd_req_get_hdr_value_len(req, "Test-Header-1") + 1;
     if (buf_len > 1) {
-        buf = malloc(buf_len);
+        buf = (char*)malloc(buf_len);
         ESP_RETURN_ON_FALSE(buf, ESP_ERR_NO_MEM, TAG, "buffer alloc failed");
         if (httpd_req_get_hdr_value_str(req, "Test-Header-1", buf, buf_len) == ESP_OK) {
             ESP_LOGI(TAG, "Found header => Test-Header-1: %s", buf);
@@ -427,7 +427,7 @@ static esp_err_t uri_hello_get_handler(httpd_req_t *req)
      * extra byte for null termination */
     buf_len = httpd_req_get_url_query_len(req) + 1;
     if (buf_len > 1) {
-        buf = malloc(buf_len);
+        buf = (char*)malloc(buf_len);
         ESP_RETURN_ON_FALSE(buf, ESP_ERR_NO_MEM, TAG, "buffer alloc failed");
         if (httpd_req_get_url_query_str(req, buf, buf_len) == ESP_OK) {
             ESP_LOGI(TAG, "Found URL query => %s", buf);
@@ -475,7 +475,7 @@ static const httpd_uri_t uri_hello = {
     .handler   = uri_hello_get_handler,
     /* Let's pass response string in user
      * context to demonstrate it's usage */
-    .user_ctx  = "Hello World!"
+    .user_ctx  = (void*)"Hello World!"
 };
 
 
@@ -486,7 +486,7 @@ static const httpd_uri_t uri_hello = {
 //
 static esp_err_t uri_upload_post_handler(httpd_req_t *req)
 {
-  const char * prefix = req->user_ctx;
+  const char * prefix = (const char *)req->user_ctx;
   const char * name = req->uri + strlen(prefix);
 
   ESP_LOGI(TAG, "Uploading '%s'", name);
@@ -502,7 +502,7 @@ static esp_err_t uri_upload_post_handler(httpd_req_t *req)
     return ESP_FAIL;
   }
   
-  char *data = malloc(req->content_len) ;
+  char *data = (char*)malloc(req->content_len) ;
   if (!data) {
     httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Out of memory");
     return ESP_FAIL;
@@ -535,7 +535,7 @@ static const httpd_uri_t uri_upload = {
     .uri       = URI_UPLOAD_PREFIX "*",
     .method    = HTTP_POST,
     .handler   = uri_upload_post_handler,
-    .user_ctx  = URI_UPLOAD_PREFIX,
+    .user_ctx  = (void*) URI_UPLOAD_PREFIX,
 };
 
 /* This handler allows the custom error handling functionality to be

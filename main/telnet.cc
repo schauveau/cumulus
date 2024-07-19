@@ -166,7 +166,7 @@ int telnet_printf(telnet_server_t *server, const char *format, ...)
   }
 
   // The static buffer is too small. Try again
-  buffer2 = malloc(len+1);
+  buffer2 = (char*)malloc(len+1);
   if (buffer2==NULL) {
     res=-2 ;
     goto done; 
@@ -294,7 +294,6 @@ static void parse_command(telnet_server_t *server, char *command)
   char *at = skip_blanks(command);
     
   if (*at=='\0') {
-    printf("Empty command"CRLF);
     return;  
   }
   const char *cmd_name = at;

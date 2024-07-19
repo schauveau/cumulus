@@ -1,6 +1,12 @@
+#include <stdio.h>
 
 #include "app_events.h"
 #include "app.h"
+
+void
+app_post_event(app_event_t event, void *arg, size_t argsize) {
+  esp_event_post(APP_EVENT, event, arg, argsize, portMAX_DELAY);
+}
 
 void
 app_sync(void)
@@ -10,33 +16,30 @@ app_sync(void)
   app_event_sync_t arg = {
     .sem = sem_handle
   };  
-  esp_event_post(APP_EVENT, APP_EVENT_SYNC, &arg, sizeof(arg), portMAX_DELAY);
+  app_post_event(APP_EVENT_SYNC, &arg, sizeof(arg) );
   xSemaphoreTake(sem_handle, portMAX_DELAY);
 }
 
 void
-app_async_set_mode_manual(void)
+app_post_set_mode_manual(void)
 {
   app_event_set_mode_manual_t arg = {};
-  esp_event_post(APP_EVENT, APP_EVENT_SET_MODE_MANUAL, &arg, sizeof(arg), portMAX_DELAY);
+  app_post_event(APP_EVENT_SET_MODE_MANUAL, &arg, sizeof(arg));
 }
 
 void
-app_async_set_mode_auto(void) {
+app_post_set_mode_auto(void) {
   app_event_set_mode_auto_t arg = {};
-  esp_event_post(APP_EVENT, APP_EVENT_SET_MODE_AUTO, &arg, sizeof(arg), portMAX_DELAY);
+  app_post_event(APP_EVENT_SET_MODE_AUTO, &arg, sizeof(arg));
 }
 
 void
-app_async_minute_tic(void) {
-  app_event_minute_tic_t arg = {};
-  esp_event_post(APP_EVENT, APP_EVENT_MINUTE_TIC, &arg, sizeof(arg), portMAX_DELAY);
-}
-
-void
-app_async_hour_tic(void) {
-  app_event_hour_tic_t arg = {};
-  esp_event_post(APP_EVENT, APP_EVENT_HOUR_TIC, &arg, sizeof(arg), portMAX_DELAY);
+app_post_set_available_power(double value)
+{
+  app_event_set_available_power_t arg = {
+    .value = value
+  } ;
+  app_post_event(APP_EVENT_SET_AVAILABLE_POWER, &arg, sizeof(arg));
 }
 
 

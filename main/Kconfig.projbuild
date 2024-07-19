@@ -1,38 +1,38 @@
 menu "*** Project Configuration ***"
 
-    config ESP_WIFI_SSID
+    config APP_WIFI_SSID
         string "WiFi SSID"
         default "myssid"
         help
-            SSID (network name) for the example to connect to.
+            Default SSID (network name) to connect to.
 
-    config ESP_WIFI_PASSWORD
+    config APP_WIFI_PASSWORD
         string "WiFi Password"
         default "mypassword"
         help
-            WiFi password (WPA or WPA2) for the example to use.
+            Default WiFi password (WPA or WPA2) to use.
 
-    choice ESP_WIFI_SAE_MODE
-        prompt "WPA3 SAE mode selection"
-        default ESP_WPA3_SAE_PWE_BOTH
-        help
-            Select mode for SAE as Hunt and Peck, H2E or both.
-        config ESP_WPA3_SAE_PWE_HUNT_AND_PECK
-            bool "HUNT AND PECK"
-        config ESP_WPA3_SAE_PWE_HASH_TO_ELEMENT
-            bool "H2E"
-        config ESP_WPA3_SAE_PWE_BOTH
-            bool "BOTH"
-    endchoice
+#    choice ESP_WIFI_SAE_MODE
+#        prompt "WPA3 SAE mode selection"
+#        default ESP_WPA3_SAE_PWE_BOTH
+#        help
+#            Select mode for SAE as Hunt and Peck, H2E or both.
+#        config ESP_WPA3_SAE_PWE_HUNT_AND_PECK
+#            bool "HUNT AND PECK"
+#        config ESP_WPA3_SAE_PWE_HASH_TO_ELEMENT
+#            bool "H2E"
+#        config ESP_WPA3_SAE_PWE_BOTH
+#            bool "BOTH"
+#    endchoice
+#
+#    config ESP_WIFI_PW_ID
+#        string "PASSWORD IDENTIFIER"
+#        depends on  ESP_WPA3_SAE_PWE_HASH_TO_ELEMENT|| ESP_WPA3_SAE_PWE_BOTH
+#        default ""
+#        help
+#            password identifier for SAE H2E
 
-    config ESP_WIFI_PW_ID
-        string "PASSWORD IDENTIFIER"
-        depends on  ESP_WPA3_SAE_PWE_HASH_TO_ELEMENT|| ESP_WPA3_SAE_PWE_BOTH
-        default ""
-        help
-            password identifier for SAE H2E
-
-    config ESP_MAXIMUM_RETRY
+    config APP_WIFI_MAXIMUM_RETRY
         int "Maximum retry"
         default 5
         help

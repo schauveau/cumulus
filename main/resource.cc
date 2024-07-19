@@ -51,8 +51,8 @@ static const priv_resource_t priv[] = {
 #undef DEF_TEXT
 #undef DEF_BINARY
 
-#define DEF_TEXT(NAME, SYMBOL, TYPE)   { .data=0, .size=0, .is_str=true, .type=TYPE}, 
-#define DEF_BINARY(NAME, SYMBOL, TYPE) { .data=0, .size=0, .is_str=false, .type=TYPE}, 
+#define DEF_TEXT(NAME, SYMBOL, TYPE)   { .data=0, .size=0, .type=TYPE, .is_str=true, }, 
+#define DEF_BINARY(NAME, SYMBOL, TYPE) { .data=0, .size=0, .type=TYPE, .is_str=false,}, 
 
 static resource_t resources[] = {
   RESOURCES
@@ -160,7 +160,7 @@ resource_update_binary(const char *name, void *data, int size)
 
   resource_restore_at(i); /// free the current resource if necessary 
 
-  resources[i].data = data ; 
+  resources[i].data = (const char*) data ; 
   resources[i].size = size ; 
 }
 

@@ -21,7 +21,6 @@
 
 static const char TAG[] = "button";
 
-ESP_EVENT_DEFINE_BASE(APP_EVENT);
 
 //
 // A queue of 'const button_info_t*'

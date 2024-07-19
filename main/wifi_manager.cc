@@ -10,11 +10,13 @@
 
 #include "wifi_manager.h"
 
+#if 0
+
 static const char TAG[] = "wifi-manager" ;
 
 
-#define wifi_ssid CONFIG_ESP_WIFI_SSID
-#define wifi_password CONFIG_ESP_WIFI_PASSWORD
+#define wifi_ssid     CONFIG_DEFAULT_WIFI_SSID
+#define wifi_password CONFIG_DEFAULT_WIFI_PASSWORD
 
 #if CONFIG_ESP_WPA3_SAE_PWE_HUNT_AND_PECK
 #define ESP_WIFI_SAE_MODE WPA3_SAE_PWE_HUNT_AND_PECK
@@ -53,10 +55,9 @@ static const char TAG[] = "wifi-manager" ;
 
 /* FreeRTOS event group to signal when we are connected*/
 static EventGroupHandle_t s_wifi_event_group;
-static int s_wifi_retry_num = 0;
+static int wifi_retry_count = 0;
 
 ///////////////////// WPS
-
 
 static esp_wps_config_t wps_config = WPS_CONFIG_INIT_DEFAULT(WPS_TYPE_PBC);                                               
 static int wps_index = 0; // current index in wps_cred
@@ -119,9 +120,9 @@ static void wifi_event_handler(void* arg, esp_event_base_t event_base,
 
     case WIFI_EVENT_STA_DISCONNECTED:
       ESP_LOGI(TAG, "WIFI_EVENT_STA_DISCONNECTED");
-      if (s_wifi_retry_num < 10) {
+      if (wifi_retry_count < CONFIG_APP_WIFI_MAXIMUM_RETRY) {
         esp_wifi_connect();
-        s_wifi_retry_num++;
+        wifi_retry_count++;
         ESP_LOGI(TAG, "retry to connect to the AP");
       } else if (wps_index < wps_count) {
         //  Try the next WPS credential if any. 
@@ -129,7 +130,7 @@ static void wifi_event_handler(void* arg, esp_event_base_t event_base,
                  wps_cred[wps_index].sta.ssid, wps_cred[wps_index].sta.password);
         ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wps_cred[wps_index++]) );
         esp_wifi_connect();
-        s_wifi_retry_num = 0;
+        wifi_retry_count = 0;
       } else {
         xEventGroupSetBits(s_wifi_event_group, WIFI_FAIL_BIT);
       }
@@ -216,7 +217,7 @@ static void ip_event_handler(void* arg, esp_event_base_t event_base,
     case IP_EVENT_STA_GOT_IP:
       ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
       ESP_LOGI(TAG, "got ip:" IPSTR, IP2STR(&event->ip_info.ip));
-      s_wifi_retry_num = 0;
+      wifi_retry_count = 0;
       xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
       break ;
     default:
@@ -229,22 +230,16 @@ static void ip_event_handler(void* arg, esp_event_base_t event_base,
 // Set wifi credentials
 //   ssid maximum length is 31  
 //   password maximum length is 63  
-void wifi_set_credentials(const char *ssid, const char *password)
+static void set_wifi_credentials(const char *ssid, const char *password)
 {
-  wifi_config_t wifi_config = {
-        .sta = {
-          .ssid = wifi_ssid,
-          .password = wifi_password,
-          /* Authmode threshold resets to WPA2 as default if password matches WPA2 standards (password len => 8).
-           * If you want to connect the device to deprecated WEP/WPA networks, Please set the threshold value
-           * to WIFI_AUTH_WEP/WIFI_AUTH_WPA_PSK and set the password with length and format matching to
-           * WIFI_AUTH_WEP/WIFI_AUTH_WPA_PSK standards.
-           */
-          .threshold.authmode = ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD,
-          .sae_pwe_h2e = ESP_WIFI_SAE_MODE,
-          .sae_h2e_identifier = PROJECT_H2E_IDENTIFIER,
-        },
-  };
+  wifi_config_t wifi_config = {} ;
+  strncpy(wifi_config.ssid,     ssid,     sizeof(wifi_config.ssid)-1) ;
+  strncpy(wifi_config.password, password, sizeof(wifi_config.password)-1) ;
+
+  // wifi_config.threshold.authmode = WIFI_AUTH_WPA2_PSK; 
+  // wifi_config.sae_pwe_h2e = ESP_WIFI_SAE_MODE;
+  // wifi_config.sae_h2e_identifier = PROJECT_H2E_IDENTIFIER;
+  
   ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config) );
 }
 
@@ -343,3 +338,4 @@ bool wifi_start(bool wps, const char *hostname)
 
     return false; 
 }
+#endif

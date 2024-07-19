@@ -31,6 +31,18 @@ typedef uint8_t acr_count_t;
 typedef uint16_t acr_count_t;  
 #endif
 
+
+// 
+// Small amount added or subtracted to the interrupt time count to 'drift' from the AC frequency.
+// For example, to do 49.9999Hz instead of 50Hz
+//
+// The clock is at 1Mhz so a ACR_DRIFT of +1 or -1 will introduce a drift of 1us per cycle.
+// At AC 50Hz (so 100 cycles per second), the drift will be 100us = 0.1ms per second = 
+// 1/100th of a cycle per second.
+//
+//
+#define ACR_DRIFT -1 
+
 ESP_STATIC_ASSERT( ACR_PREFER==0 || ACR_PREFER==1 , "ACR_PREFER must be 0 or 1");
 
 // The number of ON cycles obtained during the LAST frame.
@@ -128,7 +140,7 @@ static bool IRAM_ATTR on_ac_cycle_cb(gptimer_handle_t timer, const gptimer_alarm
 
   on_count[index] = on_count[previous] + state;
   
-  gpio_set_level(S->gpio, state);
+  gpio_set_level((gpio_num_t) S->gpio, state);
 
   S->last_frame_on_count = frame_on_count + state ;
 
@@ -149,18 +161,18 @@ void acr_start(int freq, int gpio_num) {
   gptimer_config_t timer_config = {
     .clk_src = GPTIMER_CLK_SRC_DEFAULT,
     .direction = GPTIMER_COUNT_UP,
-    .intr_priority = 0,
     .resolution_hz = 1000*1000,  // 1Mhz 
+    .intr_priority = 0,
   };
   ESP_ERROR_CHECK(gptimer_new_timer(&timer_config, &gptimer));
 
-  // Setup the alarm at twice the AC frequency 
-  // 
-  // TODO: add or subtract 1 to the alarm count to be very slightly desynchronized with AC?
+  // The interrupt shall be trigger at twice the AC frequency (100 cycles at AC 50Hz)
   gptimer_alarm_config_t alarm_config = {
+    .alarm_count = timer_config.resolution_hz / (2*freq) + (ACR_DRIFT) ,  
     .reload_count = 0,
-    .alarm_count = timer_config.resolution_hz / (2*freq),  
-    .flags.auto_reload_on_alarm = true,
+    .flags = {
+      .auto_reload_on_alarm = true,
+    },
   };
   gptimer_event_callbacks_t cbs = {
     .on_alarm = on_ac_cycle_cb,
