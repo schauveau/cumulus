@@ -19,14 +19,30 @@
 #include "button_driver.h"
 #include "esp_event.h"
 
+#include "app.h"
+
 static const char TAG[] = "button";
+
+const button_info_t project_buttons[BUTTON_COUNT] = {
+  {
+    // The primary button 
+    .id = 'A',
+    .gpio = (gpio_num_t) CONFIG_BUTTON_A_GPIO,
+    .active_level = 0
+  },
+  {
+    // The secondary button (can be the Boot button on the board)
+    .id = 'B',
+    .gpio = (gpio_num_t) CONFIG_BUTTON_B_GPIO,
+    .active_level = 0
+  },
+};
 
 
 //
 // A queue of 'const button_info_t*'
 //
 static QueueHandle_t buttons_gpio_queue = NULL;
-
 
 static void button_driver_enable_interrupts()
 {
@@ -54,20 +70,22 @@ static void button_driver_task(void *arg)
     const int delay_ms = 100 ;
     const button_info_t *button = NULL;
 
+    // Hummm.... I do not really like this idea of enable/disable interrupts.
+    // Is there a better way to do it?
+    // Also, the driver should be able to report when multiple buttons are pressed.
+    
     button_driver_enable_interrupts();
-
-    // ESP_LOGI(TAG, "at xQueueReceive");
 
     if ( !xQueueReceive(buttons_gpio_queue, &button, portMAX_DELAY) )
       continue;
-
-    // button_driver_disable_interrupts(); // Already done in gpio_isr_handler so probably not needed.
     
     int count=0;
     while ( gpio_get_level(button->gpio) == button->active_level ) {
+      if (count%5==0)
+        app_post_button_press(button->id, count*delay_ms);
       vTaskDelay( delay_ms / portTICK_PERIOD_MS);
       count++;
-    }
+   }
     
     // The press was so short that we could not even detect it.
     // This is probably noise so ignore it.
@@ -81,8 +99,8 @@ static void button_driver_task(void *arg)
     // TODO: count*delay_ms may not be an accurate method to measure
     //       the time. Should use a realtime clock instead.  
     
-    project_button_handler(button, count*delay_ms);
-
+    app_post_button_release(button->id, count*delay_ms);
+      
   }
 }
 

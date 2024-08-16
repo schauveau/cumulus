@@ -56,7 +56,7 @@ typedef enum {
 
 
 typedef struct {  
-  int           id;   // a user defined identifier
+  char          id;   // a user defined identifier
   gpio_num_t    gpio;
   int           active_level; // gpio level when pressed: 0 or 1. 
 } button_info_t;

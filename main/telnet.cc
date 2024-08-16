@@ -187,7 +187,7 @@ int telnet_printf(telnet_server_t *server, const char *format, ...)
   
   if (buffer2)
     free(buffer2);
-  return res; 
+  return res;
 }
 
 void telnet_will(telnet_server_t *server, char option) {

@@ -12,6 +12,5 @@ CONFIG_PARTITION_TABLE_MD5=y
 # system libraries (the linker already does a good job
 # by ignoring object files that are not referenced so
 # removing support here is only useful for libraries that
-# we are partially using. 
-CONFIG_ESP_WIFI_SOFTAP_SUPPORT=n
-
+# we are partially using.
+# CONFIG_ESP_WIFI_SOFTAP_SUPPORT=n

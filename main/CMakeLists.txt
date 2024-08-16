@@ -4,20 +4,19 @@ idf_component_register(
   "app.cc"
   "app_support.cc"
   "button_driver.cc"
-  "http_ui.cc"
-  "main.cc"
   "resource.cc"
   "rgb_led.cc"
-  "telnet.cc"
-  "wifi_manager.cc"
+  "ui_http.cc"
+  "ui_mqtt.cc"
  INCLUDE_DIRS
    "."
  EMBED_TXTFILES
    "data/global.css"
    "data/index.html"
-   "data/test.html"
+   "data/help.html"
+   "data/jquery.3.7.1.js"
  EMBED_FILES
-   "data/test.png"
+   "data/icon.png"
  )
 
 target_compile_options(${COMPONENT_LIB} PRIVATE "-Wno-missing-field-initializers")

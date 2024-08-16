@@ -1,7 +1,353 @@
+<!DOCTYPE html>
 <html>
-<head>
-</head>
-<body>
-<p>This is index.html</p>
-</body>
+
+  <head>
+    <meta charset="UTF-8" />
+    <script src="data/jquery.3.7.1.js"></script>
+    <style>
+     
+     .active {
+       background-color: #04AA6D;       
+     }
+     
+     * {
+       margin: 0;
+       padding: 0;
+     }
+
+     body {
+       font-family: 'Arial', sans-serif;
+     }
+
+     form {
+       /*background-color: #ffaaaa;*/
+       margin: 1em;
+       padding: 0px;      
+     }
+
+     form label{
+       color: #000000;
+     }
+
+     .note {
+       color: #880000;
+     }
+     
+     fieldset {
+       background-color: #eeeeee;
+       padding: 1em 1em;
+     }    
+     
+     legend {
+       background-color: gray;
+       color: white;
+       padding: 5px 10px;
+     }
+
+     #console {
+       background-color: #eaaaaa;
+       margin: 1em;
+       padding: 1em;
+       word-break: break-all;
+     }
+     
+     .navbar {
+       background: #553311;
+       background-size: cover;
+       display: flex;
+       position: sticky;
+       align-items: center;
+       justify-content: space-between;
+       top: 0px;
+       color: red;
+       padding: 10px 20px;
+     }
+     
+     
+     .nav-list {
+       display: flex;
+       list-style: none;
+     }
+     
+     .nav-list li {
+       margin-right: 20px;
+     }
+     
+     .nav-list li:last-child {
+       margin-right: 0;
+     }
+     
+     .nav-list li a {
+       /* text-decoration: none;*/
+       color: white;
+       font-size: 18px;
+       transition: color 0.3s ease-in-out;
+     }
+     
+     .nav-list li a:hover {
+       color: #ffd700;
+       /* Change the color on hover */
+     }
+
+     .rightNav {
+       text-align: right;
+     }
+
+     .btn {
+       margin-top: .5em;
+       background-color: #f8eedd;
+       color: #000;
+       padding: 0.2em 1em;
+       border-radius: 5px;
+       cursor: pointer;
+       transition: background-color 0.3s ease-in-out;
+     }
+     
+     .btn:hover {
+       background-color: #000;
+       color: #ffeedd;
+     }
+     
+     .tooltip {
+       position: relative;
+       display: inline-block;
+       border-bottom: 1px dotted black; /* If you want dots under the hoverable text */
+     }
+     
+     /* Tooltip text */
+     .tooltip .tooltiptext {
+       visibility: hidden;
+       width: 120px;
+       background-color: black;
+       color: #fff;
+       text-align: center;
+       padding: 5px 0;
+       border-radius: 6px;
+       
+       /* Position the tooltip text - see examples below! */
+       position: absolute;
+       z-index: 1;
+     }
+     
+     /* Show the tooltip text when you mouse over the tooltip container */
+     .tooltip:hover .tooltiptext {
+       visibility: visible;
+     }
+    </style>
+
+    <script>
+
+     // Enable or disable all forms
+     function enableAllForms(status)
+     {
+       $(".jsonform :input").prop("disabled", !status);
+     }
+
+     function processJSON(data) {
+       const str = JSON.stringify(data) ;
+       $("#console").text(str);
+       for (const [k, v] of Object.entries(data)) {
+         switch(k) {
+           case "frame_size":
+           case "manual_power":
+           case "auto_over_power":
+           case "auto_min_power":
+           case "full_power":
+           case "mode":
+           case "timezone":
+           case "wifi_ssid":
+           case "wifi_password":
+           case "ui_password":
+           case "hostname":
+           case "mqtt_uri":
+             $("#"+k).val(v);
+             break;
+           case "localtime":
+             $("#localtime").text(v);
+             // And also set the client time for easy comparison
+             let now = new Date();
+             $("#clienttime").text(now.toString());
+             break;
+           case "auto_available_power":
+             // Ignore for now.
+             break;
+           default:
+             $("#console").append(document.createTextNode("[???"+k+"???]"));
+             break
+         }
+       }
+     }
+
+     function fetchJsonAction(action, args) {
+       return fetch('/json', {
+         headers: {
+           'Accept': 'application/json',
+           'Content-Type': 'application/json;charset=utf-8'
+         },
+         method: 'POST',
+         body: JSON.stringify( {"action": action, ...args} )
+       }).then(response => response.json() )
+     }
+
+     function refreshPage()
+     {
+       $('.jsonform')[0].reset(); // Reset all forms
+       $('input[type=checkbox]').prop('checked',false); // For whatever reason, some checkboxes remain checked while others do not
+       enableAllForms(false);  // Disable all forms durings the state query
+       // And query the state
+       fetchJsonAction('get-state', {})
+         .then(json => {
+           processJSON(json) ;
+           enableAllForms(true);           
+         } )
+         .catch(error => { alert(error) } );
+     }
+
+     function handleFormSubmit(event) {
+       event.preventDefault();
+       var form = $(this)
+       const array = $(form).serializeArray(); 
+       const obj = {};
+       $.each(array, function () {
+         if ( this.name.startsWith("i:") ) {
+           obj[this.name.substring(2)] = Number(this.value);
+         } else if ( this.name.startsWith("b:") ) {
+           obj[this.name.substring(2)] = (this.value=="on");
+         } else {
+           obj[this.name] = this.value || "";
+         }
+       });
+       var action = form.attr("action") 
+       fetchJsonAction(action, obj)
+         .then(json => { processJSON(json) } )
+         .catch(error => { alert(error) } )
+       ;
+     }
+     
+     function rebootDevice() {
+       fetchJsonAction('reboot',{})
+         .then(json => { processJSON(json) } )
+         .catch(error => { alert(error) } )
+       ;
+     }
+     
+     function ready() {
+       $(".jsonform").submit(handleFormSubmit);
+       $("#console").text("Request state");
+       refreshPage();
+     }
+
+     function togglePasswordText(name) {
+       let a=$('#'+name);
+       a.attr('type',(a.attr('type')==='password')?'text':'password');
+     }
+     
+     $(document).ready(ready);
+     
+    </script>
+  </head>
+
+  <body>
+    <nav class="navbar">
+      <ul class="nav-list">
+        <li><img src="data/icon.png" style="height: 1em;" ></li>
+        <li><a href="https://github.com/schauveau/esp32-cumulus">Github</a></li>
+        <li><a href="javascript:;" onclick="rebootDevice();">Reboot device</a></li>
+        <li><a href="page/help.html">Help</a></li>
+      </ul>
+    </nav>
+    
+    <form class="jsonform"  action="set-full-power">
+      <fieldset >
+        <legend>Full Power</legend>
+        <label>Value: </label>
+        <input type="number" id="full_power" name="i:value" value="600" min="10" max="9999">
+        <label>Save as default </label>
+        <input type="checkbox" id="full_power_save" name="b:save" /><br>
+        <button class="btn">Apply</button>       
+      </fieldset>
+    </form>
+
+    <form class="jsonform"  action="auto-mode">
+      <fieldset >
+        <legend>Auto Mode Settings</legend>
+        <label>Over Power: </label>
+        <input type="number" id="auto_over_power" name="i:auto_over_power" value="0" min="-9999" max="9999"><br>
+        <label>Min Power: </label>
+        <input type="number" id="auto_min_power" name="i:auto_min_power" value="0" min="0" max="9999"><br>
+        <button class="btn">Apply</button>
+      </fieldset>
+    </form>
+    
+    <form class="jsonform"  action="manual-mode">
+      <fieldset >
+        <legend>Manual Mode Settings</legend>
+        <label>Power: </label>
+        <input type="number" id="manual_power" name="i:manual_power" value="0" min="0" max="10000"><br>
+        <button class="btn">Apply</button>
+      </fieldset>
+    </form>
+    
+    <form class="jsonform"  action="set-frame-size">
+      <fieldset >
+        <legend>Frame Size</legend>
+        <label>Value: </label>
+        <input type="number" id="frame_size" name="i:value" value="20" min="10" max="100">
+        <label>Save as default </label>
+        <input type="checkbox" id="frame_size_save" name="b:save" /><br>
+        <button class="btn">Apply</button>
+      </fieldset>
+    </form>
+
+    <form class="jsonform"  action="set-hostname">
+      <fieldset >
+        <legend>Network Settings</legend>
+        <label>Hostname: </label><input type="text" id="hostname" name="hostname" ><br>
+        <button class="btn">Apply</button>
+      </fieldset>
+    </form>
+    
+    <form class="jsonform"  action="set-wifi-cred">
+      <fieldset >
+        <legend>WiFi Settings</legend>
+        <label>SSID: </label><input type="text" id="wifi_ssid" name="wifi_ssid" ><br>
+        <label>Password: </label><input type="password" id="wifi_password" name="wifi_password" >
+        <span onclick="togglePasswordText('wifi_password');">👁</span><br>
+        <button class="btn">Apply</button><br>
+        <div class="note">Note: The new WiFi credentials will take effect after reboot</div>
+      </fieldset>
+    </form>
+
+    <form class="jsonform"  action="set-time">
+      <fieldset >
+        <legend>Date & Time</legend>
+        <label>Posix Timezone: </label><input type="text" id="timezone" name="timezone" maxlength="64" size="40"><br>
+        <label>Device Time: </label><label id="localtime">???</label><br>
+        <label>Client Time: </label><label id="clienttime">???</label><br>
+        <button class="btn">Apply</button>
+      </fieldset>
+    </form>
+    
+    <form class="jsonform"  action="mqtt">
+      <fieldset >
+        <legend>MQTT</legend>
+        <label>MQTT Broker URI: </label><input type="text" id="mqtt_uri" name="mqtt_uri" maxlength="64" size="40"><br>
+        <button class="btn">Apply</button>
+      </fieldset>
+    </form>
+    
+    <form class="jsonform"  action="ui">
+      <fieldset >
+        <legend>User Interface</legend>
+        <label>Username: </label>admin<br>
+        <label>Password: </label><input type="password" id="ui_password" name="ui_password" maxlength="64" size="40">
+        <span onclick="togglePasswordText('ui_password');">👁</span><br>
+        <button class="btn">Apply</button>
+      </fieldset>
+    </form>
+    
+    <br>    
+    <textarea id='console' rows=10 cols=80 readonly></textarea>
+    
+  </body>
 </html>

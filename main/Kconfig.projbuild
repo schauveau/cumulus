@@ -12,31 +12,11 @@ menu "*** Project Configuration ***"
         help
             Default WiFi password (WPA or WPA2) to use.
 
-#    choice ESP_WIFI_SAE_MODE
-#        prompt "WPA3 SAE mode selection"
-#        default ESP_WPA3_SAE_PWE_BOTH
-#        help
-#            Select mode for SAE as Hunt and Peck, H2E or both.
-#        config ESP_WPA3_SAE_PWE_HUNT_AND_PECK
-#            bool "HUNT AND PECK"
-#        config ESP_WPA3_SAE_PWE_HASH_TO_ELEMENT
-#            bool "H2E"
-#        config ESP_WPA3_SAE_PWE_BOTH
-#            bool "BOTH"
-#    endchoice
-#
-#    config ESP_WIFI_PW_ID
-#        string "PASSWORD IDENTIFIER"
-#        depends on  ESP_WPA3_SAE_PWE_HASH_TO_ELEMENT|| ESP_WPA3_SAE_PWE_BOTH
-#        default ""
-#        help
-#            password identifier for SAE H2E
-
     config APP_WIFI_MAXIMUM_RETRY
-        int "Maximum retry"
+        int "Maximum Wifi retry"
         default 5
         help
-            Set the Maximum retry to avoid station reconnecting to the AP unlimited when the AP is really inexistent.
+            The number of consecutive connection retry to the WiFi AP
 
     choice ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD
         prompt "WiFi Scan auth mode threshold"
@@ -89,22 +69,36 @@ menu "*** Project Configuration ***"
     config RELAY_GPIO
         int "AC Relay GPIO number"
         range 0 100
-        default 5
+        default 32 if IDF_TARGET_ESP32
+        default 5 if IDF_TARGET_ESP32C6
+        default 5 
         help
           GPIO number (IOxx) to control the AC Relay.
 
     config RGB_GPIO
         int "RGB Led GPIO number"
         range -1 100
+        default -1 if IDF_TARGET_ESP32
         default 8 if IDF_TARGET_ESP32C6
         default 8 if IDF_TARGET_ESP32H2
-        default 21
+        default -1
         help
-          GPIO number (IOxx) to control the RGB led.
+          GPIO number (IOxx) to control the on-board RGB led or -1
+
+    config LED_GPIO
+        int "Led GPIO number"
+        range -1 100
+        default 2 if IDF_TARGET_ESP32
+        default -1 if IDF_TARGET_ESP32C6
+        default -1 if IDF_TARGET_ESP32H2
+        default -1
+        help
+          GPIO number (IOxx) to control the on-board led or -1
 
     config BUTTON_A_GPIO
         int "Button A GPIO number"
         range 0 100
+        default 4 if IDF_TARGET_ESP32
         default 3
         help
           GPIO number (IOxx) for the primary button.
@@ -113,12 +107,19 @@ menu "*** Project Configuration ***"
     config BUTTON_B_GPIO
         int "Button B GPIO number"
         range 0 100
+        default 0 if IDF_TARGET_ESP32
         default 9 if IDF_TARGET_ESP32C6
         default 9 if IDF_TARGET_ESP32H2
         default 20
         help
           GPIO number (IOxx) for the secondary button.
           Activate by connecting to GND.
-          For ESP32H2 and ESP32C6, the default is 9 which should be the BOOT button on most development boards.
+          This is typically the BOOT button found on most development boards.
+
+    config MQTT_BROKER_URI
+        string "MQTT URI"
+        default "mqtt://username:password@mqtt.private:1883"
+        help
+           URI of the MQTT broker
 
 endmenu

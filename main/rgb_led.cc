@@ -5,6 +5,15 @@
 
 #include "rgb_led.h"
 
+// TODO: Make a API for the non-rgb led
+
+#if CONFIG_RGB_GPIO==-1
+
+void led_init(void) {} 
+void led_set_rgb(uint32_t rgb)  {}
+void led_set_hsv(uint16_t h, uint8_t s, uint8_t v) {}
+
+#else
 
 // The led on my espc6-zero is using RGB instead of GRB
 // so I need to swap Red and Green components
@@ -59,3 +68,4 @@ void led_set_hsv(uint16_t h, uint8_t s, uint8_t v)
   led_strip_set_pixel_hsv(led_strip,0,h,s,v);
   led_strip_refresh(led_strip);
 }
+#endif

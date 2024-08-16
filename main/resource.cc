@@ -14,10 +14,11 @@
 static const char TAG[] = "resource" ;
 
 //
-// According to the official ESP-IDF documentation, each embedded file is encapsulated by
-// two symbols _binary_SYMBOL_start and _binary_SYMBOL_end
-//
-//
+// According to the official ESP-IDF documentation, each embedded file is encapsulated
+// by 2 symbols
+//    _binary_SYMBOL_start
+// and
+//    _binary_SYMBOL_end
 //
 
 #define START(SYMBOL)  _binary_##SYMBOL##_start
@@ -33,8 +34,8 @@ typedef struct {
 
 // Declare all the symbols
 
-#define DEF_TEXT(NAME, SYMBOL, TYPE)   extern const char START(SYMBOL)[] , END(SYMBOL) [] ;
-#define DEF_BINARY(NAME, SYMBOL, TYPE) extern const char START(SYMBOL)[] , END(SYMBOL) [] ;
+#define DEF_TEXT(NAME, SYMBOL, TYPE)   extern const char START(SYMBOL)[], END(SYMBOL) [] ;
+#define DEF_BINARY(NAME, SYMBOL, TYPE) extern const char START(SYMBOL)[], END(SYMBOL) [] ;
 
 RESOURCES
 
@@ -60,10 +61,6 @@ static resource_t resources[] = {
   
 #undef DEF_TEXT
 #undef DEF_BINARY
-
-//////
-//////
-//////
 
 enum {
   // The number of resources. 
@@ -189,9 +186,7 @@ resource_update_string(const char *name, char *data, int size)
     free(data);
     return ;
   }
-  
   resource_restore_at(i); // free the current resource if necessary
-
   resources[i].data = data ; 
   resources[i].size = size ; 
 }
@@ -199,7 +194,6 @@ resource_update_string(const char *name, char *data, int size)
 void resource_init()
 {  
   resource_restore_all() ;
-  
   for (int i=0;i<rescount; i++) {
     ESP_LOGI(TAG, "%c %5d %s ", (resources[i].is_str?'S':'B'),  resources[i].size, priv[i].name );
   }
